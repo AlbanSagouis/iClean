@@ -11,15 +11,15 @@
 #' known complete name beginning with the same letter.
 #' @author Alban Sagouis
 #'
-#' @examples extend_genus_names(c("Bufo bufo", "B. bufo", "Buteo buteo", "B. buteo"))
-#' [1] "Bufo bufo"   "Bufo bufo"   "Buteo buteo" "Buteo buteo"
+#' @examples extend_genus_names(c("Bufo bufo", "B. bufo", "Buteo buteo", "B. buteo", "G. gulo", NA))
 #'
 #'
 #' @export
 
 extend_genus_names <- function(species_vector_by_group) {
-	if(!all(substr(species_vector_by_group, 2,2) == ".")) { 	# if all genus names of a given study are shortened, do nothing.
+	#if(!all(substr(species_vector_by_group, 2,2) == ".")) { 	# if all genus names of a given study are shortened, do nothing. Is this useful or just resource consuming?
 		for(i in unique(species_vector_by_group)) {
+
 			if(!grepl(x=i, pattern="^([A-Z])\\..")) {
 				previous <- i
 				next
@@ -27,7 +27,7 @@ extend_genus_names <- function(species_vector_by_group) {
 
 			first_letter <- substr(i, 1, 1)
 			if(substr(previous,1,1) != first_letter) {
-				warning(paste("previous species and i don't match",i))
+				warning(paste("previous species and i don't match", i))
 				next
 			}
 
@@ -40,6 +40,6 @@ extend_genus_names <- function(species_vector_by_group) {
 
 			previous <- new_name	# In the loop, previous is the previous species name in the list
 		}
-	}
+	#}
 	return(species_vector_by_group)
 }

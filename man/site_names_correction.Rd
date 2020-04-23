@@ -43,6 +43,14 @@ data.frame(exmpl,
            corrected = site_names_correction(site_vector = exmpl,
                       add_site_category_to_acronyms = TRUE)
 )
+         exmpl     corrected
+1            s2       Site s2
+2             1        Site 1
+3        site.3        Site.3
+4   forestPrime  Forest Prime
+5 forest,border Forest,border
+6 forest border Forest border
+7      (border)      (border)
 
 }
 \author{

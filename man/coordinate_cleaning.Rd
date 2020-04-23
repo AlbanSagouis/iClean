@@ -36,6 +36,8 @@ load("data/coordinates_test_dataset_1")
 coords <- dat$coord
 id <- dat$study_ID
 data.frame(dat, coordinate_cleaning(coords, id))
+
+
 }
 \seealso{
 \code{\link[biogeo]{dmsabs}}, \code{\link[biogeo]{dmsparse}},

@@ -23,8 +23,9 @@ When encontering an abbreviated genus name, the function replaces it with the la
 known complete name beginning with the same letter.
 }
 \examples{
-extend_genus_names(c("Bufo bufo", "B. bufo", "Buteo buteo", "B. buteo"))
-[1] "Bufo bufo"   "Bufo bufo"   "Buteo buteo" "Buteo buteo"
+extend_genus_names(c("Bufo bufo", "B. bufo", "Buteo buteo", "B. buteo", "G. gulo", NA))
+
+
 }
 \author{
 Alban Sagouis

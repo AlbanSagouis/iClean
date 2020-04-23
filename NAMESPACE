@@ -2,5 +2,6 @@
 
 export(coordinate_cleaning)
 export(extend_genus_names)
+export(homogeniseNumberLength)
 export(site_names_correction)
 export(species_names_correction)

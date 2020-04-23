@@ -6,9 +6,9 @@
 \usage{
 species_names_correction(
   species_vector = NA,
-  grouping_vector = NULL,
+  grouping_vector = NA,
+  delimiter = " ",
   convert_to_ascii = FALSE,
-  ITIS_based_correction = FALSE,
   numberHomogenisation = TRUE,
   genus_name_extension = FALSE,
   replace_dots = FALSE,
@@ -21,11 +21,13 @@ species_names_correction(
 
 \item{grouping_vector}{description}
 
+\item{delimiter}{Character wanted between words. Default to ' '.}
+
 \item{convert_to_ascii}{description}
 
-\item{ITIS_based_correction}{if \code{TUE} controls whether corrections based on searches on the IRIS database and careful review of species names. Default to \code{FALSE}.}
-
-\item{numberHomogenisation}{if \code{TRUE} (the default), the length of numbers will be homogenised among species names of a single study given in grouping_vector. If in a given study, the largest number has 3 digits, all numbers will get zeroes concatened before. 1 -> 001.}
+\item{numberHomogenisation}{if \code{TRUE} (the default), the length of numbers will be homogenised
+among species names of a single study given in grouping_vector. If in a given study, the largest
+number has 3 digits, all numbers will get zeroes concatened before. 1 -> 001.}
 
 \item{genus_name_extension}{description}
 
@@ -43,6 +45,8 @@ Use UTF-8 encoding to read and modify the code of the function
 }
 \examples{
 Write an example.
+
+
 }
 \author{
 Alban Sagouis
