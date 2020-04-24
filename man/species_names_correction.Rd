@@ -9,8 +9,8 @@ species_names_correction(
   grouping_vector = NA,
   delimiter = " ",
   convert_to_ascii = FALSE,
-  numberHomogenisation = TRUE,
   genus_name_extension = FALSE,
+  numberHomogenisation = FALSE,
   replace_dots = FALSE,
   replace_question_marks = FALSE,
   erase_descriptor = TRUE
@@ -25,11 +25,11 @@ species_names_correction(
 
 \item{convert_to_ascii}{description}
 
+\item{genus_name_extension}{description}
+
 \item{numberHomogenisation}{if \code{TRUE} (the default), the length of numbers will be homogenised
 among species names of a single study given in grouping_vector. If in a given study, the largest
 number has 3 digits, all numbers will get zeroes concatened before. 1 -> 001.}
-
-\item{genus_name_extension}{description}
 
 \item{replace_dots}{description}
 

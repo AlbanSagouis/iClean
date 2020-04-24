@@ -42,6 +42,7 @@ species_names_correction <- function(species_vector = NA,
    									replace_question_marks = FALSE,
    									erase_descriptor = TRUE
 									)	{
+   if(class(grouping_vector) != "factor") grouping_vector <- factor(grouping_vector, levels = unique(grouping_vector))
 	# Accentuated characters such as Áêãçoàúü are converted to their basic equivalent Aeacoauu
 	if(convert_to_ascii) species_vector <- iconv(x=species_vector, from="latin1", to="ASCII//TRANSLIT")
 

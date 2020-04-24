@@ -17,6 +17,9 @@ Change the number of leading zeros to homogenise all numbers found in a vector o
 and morphospecies names.
 The length of numbers will be homogenised among species names of a single study given in grouping_vector. If in a given study, the largest number has 3 digits, all numbers will get zeroes concatened before. 1 -> 001.
 }
+\details{
+If a species name countains several numbers (e.g. Buteo buteoC3F4), they are ignored.
+}
 \examples{
 Write an example.
 
