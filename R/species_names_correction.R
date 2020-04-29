@@ -22,28 +22,24 @@
 # function that takes a vector of species names (species_vector) and makes corrections to it.
 # http://tnrs.iplantcollaborative.org/TNRSapp.html
 
-# bugs to correct:
-#	 Alnus _crispa    ->  Alnus cri sp.
-#   Parecnomia sp.  ->  Parecnomia sp when replace_dots=TRUE
 
-# TO DO
-# create an argument for deciding what comes between sp. and the number ( OR delete all species between sp. and the number at the end: gsub(x=tr, pattern="(\\ sp\\.)+\\ +([[:digit:]]+)", replacement="\\1\\2"))
-# create an argument to keep only the first N words (and an N argument) (keep only before the seconf space: sub(pattern="^(\\S*\\s+\\S+).*", replacement="\\1", tt))
-# create a delimiterAfterSp argument to make a difference with the deliniter between words.
+
 
 
 species_names_correction <- function(species_vector = NA,
    									grouping_vector = NA,
    									delimiter = " ",
    									convert_to_ascii = FALSE,
-   									genus_name_extension = FALSE, # messes up with the order of species names
-   									numberHomogenisation = FALSE, # messes up with the length of the species_vector_by_group
+   									genus_name_extension = FALSE,
+   									numberHomogenisation = FALSE,
    									replace_dots = FALSE,
    									replace_question_marks = FALSE,
    									erase_descriptor = TRUE
 									)	{
+   if((genus_name_extension | numberHomogenisation) & is.na(grouping_vector)) stop("grouping_vector is missing")
    if(class(grouping_vector) != "factor") grouping_vector <- factor(grouping_vector, levels = unique(grouping_vector))
-	# Accentuated characters such as Áêãçoàúü are converted to their basic equivalent Aeacoauu
+
+   # Accentuated characters such as Áêãçoàúü are converted to their basic equivalent Aeacoauu
 	if(convert_to_ascii) species_vector <- iconv(x=species_vector, from="latin1", to="ASCII//TRANSLIT")
 
 	# species names containing "-"
@@ -141,11 +137,11 @@ species_names_correction <- function(species_vector = NA,
 
 	# sp 4 -> sp. 4
 	#gsub(x=grep(x=species_vector,  pattern="(\\ sp)+(\\ [[:alnum:]])", value=T, perl=T),  pattern="(\\ sp)+(\\ [[:alnum:]])", replacement="\\1\\.\\2", fixed=F, perl=T)
-	species_vector <- gsub(x=species_vector,  pattern="(\\ sp)+(\\ [[:alnum:]])",  replacement="\\1\\.\\2", fixed=F, perl=T)
+	species_vector <- gsub(x=species_vector,  pattern="(\\ sp)+(\\ )+([[:alnum:]])",  replacement="\\1\\.\\3", fixed=F, perl=T)
 
 	# sp  4 -> sp. 4 (2 spaces)
 	#gsub(x=grep(x=species_vector,  pattern="(\\ sp)+(\\ [[:alnum:]])", value=T, perl=T),  pattern="(\\ sp)+(\\ [[:alnum:]])", replacement="\\1\\.\\2", fixed=F, perl=T)
-	species_vector <- gsub(x=species_vector,  pattern="(\\ sp)+(\\ )+(\\ [[:alnum:]])",  replacement="\\1\\.\\3", fixed=F, perl=T)
+	species_vector <- gsub(x=species_vector,  pattern="(\\ sp)+(\\ )+(\\ )+([[:alnum:]])",  replacement="\\1\\.\\4", fixed=F, perl=T)
 
 	#  spec. 4 -> sp. 4
 	#gsub(x=grep(x=species_vector, pattern="\\ spec\\.", value=T), pattern="\\ spec\\.", replacement="\\ sp\\.")
@@ -153,7 +149,7 @@ species_names_correction <- function(species_vector = NA,
 
 	# species 4 -> sp. 4
 	# gsub(x=grep(x=species_vector, pattern="(\\ species)+(\\ [[:digit:]])", value=T), pattern="(\\ species)+(\\ [[:digit:]])", replacement="\\ sp\\.\\2")
-	species_vector <- gsub(x=species_vector, pattern="(\\ species)+(\\ [[:digit:]])", replacement=paste0(delimiter, "sp\\.\\2"))
+	species_vector <- gsub(x=species_vector, pattern="(\\ species)+(\\ )+([[:digit:]])", replacement=paste0(delimiter, "sp\\.\\3"))
 
 	# " spp" should be " spp."
 	#gsub(x=grep(x=species_vector, pattern="\\ spp[^\\.]|\\ spp$", value=T), pattern="\\ spp[^\\.]|\\ spp$", replacement="\\ spp\\.\\ ")
@@ -176,12 +172,12 @@ species_names_correction <- function(species_vector = NA,
 	species_vector <- gsub(x=species_vector, pattern="\\ c\\.f\\.\\ |\\ c\\.f\\.$", replacement=paste0(delimiter, "cf\\.", delimiter))
 
 	# " et al" should be " et al."
-	species_vector <- gsub(x=species_vector, pattern=" et al$| et al\\ ", replacement=paste0(" et al\\.", delimiter))
+	species_vector <- gsub(x=species_vector, pattern=" et al$| et al\\ ", replacement=paste0(delimiter,"et", delimiter, "al\\.", delimiter))
 
 	# morphospecies
 	# "morphospec 0562" -> "msp. 0562"
 	#gsub(x=grep(x=species_vector, pattern="(morphospec)(\\ [[:digit:]])", value=T, perl=T), pattern="(morphospec)(\\ [[:digit:]])", replacement="msp\\.\\ \\2", fixed=F, perl=T)
-	species_vector <- gsub(x=species_vector, pattern="(morphospec)(\\ [[:digit:]])", replacement=paste0("msp\\.", delimiter, "\\2"), fixed=F, perl=T)
+	species_vector <- gsub(x=species_vector, pattern="(morphospec)(\\ )([[:digit:]])", replacement=paste0("msp\\.", delimiter, "\\3"), fixed=F, perl=T)
 	#gsub(x=grep(x=species_vector, pattern="(m-)([[:digit:]])", value=T, perl=T), pattern="(m-)([[:digit:]])", replacement="msp\\.\\ \\2", fixed=F, perl=T)
 	species_vector <- gsub(x=species_vector, pattern="(m-)([[:digit:]])", replacement=paste0("msp\\.", delimiter, "\\2"), fixed=F, perl=T)
 
