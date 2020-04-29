@@ -148,7 +148,7 @@ print(dim(y_val))
 
 HIDDEN_SIZE <- 128
 BATCH_SIZE <- 128
-LAYERS <- 1
+LAYERS <- 2
 
 # Initialize sequential model
 model <- keras_model_sequential()
@@ -192,7 +192,7 @@ model %>% fit(
    x = x_train,
    y = y_train,
    batch_size = BATCH_SIZE,
-   epochs = 10,
+   epochs = 4,
    validation_data = list(x_val, y_val)
 )
 
