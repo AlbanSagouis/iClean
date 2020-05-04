@@ -4,7 +4,12 @@
 \alias{coordinate_cleaning}
 \title{Coordinate cleaning}
 \usage{
-coordinate_cleaning(coords, id, assume_good_order = FALSE)
+coordinate_cleaning(
+  coords,
+  id,
+  assume_good_order = FALSE,
+  result_format = "complete"
+)
 }
 \arguments{
 \item{coords}{a character vector containing longitude and latitude together. Either in
@@ -14,12 +19,14 @@ indicateing Northing and Easting.}
 \item{id}{a character of factor vector grouping coordinates belonging to the same
 study or article ie. coordinates sharing the same style,}
 
-\item{assume_good_order}{if there is no information, is latitude assumed to come before
+\item{assume_good_order}{If there is no information (a letter indicating Northing and Easting), is latitude assumed to come before longitude.
 longitude? Default to \code{FALSE}.}
+
+\item{result_format}{If \code{complete}, the default the table given by \code{\link[biogeo]{dmsparse}} .}
 }
 \value{
-data.frame with two columns, x and y in decimal degrees North and East,
-and comments on found errors.
+data.frame. If \code{result_format == 'simple'}: three columns, ID, x and y
+with coordinates in decimal degrees North and East. If \code{result_format == 'complete'}, coordinates are given but also comments on errors found in initial values.
 }
 \description{
 The function converts coordinates in various formats in a single column to 2 columns,
@@ -29,7 +36,8 @@ Use UTF-8 encoding to read and modify the code of the function
 \details{
 The function uses regular expressions and parsing to split latitude
 and longitude values using different cues and prepares the coordinate strings
-to go through \code{\link[biogeo]{dmsparse}}.
+to go through \code{\link[biogeo]{dmsparse}}. If coordinates are in a consistent
+format, \code{\link[biogeo]{dmsparse}} or \code{\link[biogeo]{dmsparsefmt}} can be used.
 }
 \examples{
 load("data/coordinates_test_dataset_1")

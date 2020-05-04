@@ -8,13 +8,15 @@
 #' indicateing Northing and Easting.
 #' @param id a character of factor vector grouping coordinates belonging to the same
 #' study or article ie. coordinates sharing the same style,
-#' @param assume_good_order if there is no information, is latitude assumed to come before
+#' @param assume_good_order If there is no information (a letter indicating Northing and Easting), is latitude assumed to come before longitude.
 #' longitude? Default to \code{FALSE}.
-#' @return data.frame with two columns, x and y in decimal degrees North and East,
-#' and comments on found errors.
+#' @param result_format If \code{complete}, the default the table given by \code{\link[biogeo]{dmsparse}} .
+#' @return data.frame. If \code{result_format == 'simple'}: three columns, ID, x and y
+#' with coordinates in decimal degrees North and East. If \code{result_format == 'complete'}, coordinates are given but also comments on errors found in initial values.
 #' @details The function uses regular expressions and parsing to split latitude
 #' and longitude values using different cues and prepares the coordinate strings
-#' to go through \code{\link[biogeo]{dmsparse}}.
+#' to go through \code{\link[biogeo]{dmsparse}}. If coordinates are in a consistent
+#' format, \code{\link[biogeo]{dmsparse}} or \code{\link[biogeo]{dmsparsefmt}} can be used.
 #' @author Alban Sagouis
 #' @seealso  \code{\link[biogeo]{dmsabs}}, \code{\link[biogeo]{dmsparse}},
 #' \code{\link[biogeo]{quickclean}}, \code{\link[biogeo]{errorcheck}}, \code{CoordinateCleaner}.
@@ -29,14 +31,23 @@
 
 
 ###############
+# Additional features
 ### doSplit = FALSE if the user provides already separated x and y
-### See also biogeo::uniqueformats(x)/getformat(x) with biogeo::dmsabs()(for x and y in separated columns)
+### See also biogeo::uniqueformats(x)/getformat(x) with biogeo::dmsabs()(for x and y
+### in separated columns)
+#	checking conversions (cf biogeo package tools)
+#		against continent
+#		against country
+#		prompting the user/saving a table with error messages giving clues about the problem
+#
+
 ###############
 
 
 coordinate_cleaning <- function(coords,
                                 id,
-                                assume_good_order = FALSE) {
+                                assume_good_order = FALSE,
+                                result_format = 'complete') {
 
 
    # converting special characters
@@ -46,11 +57,11 @@ coordinate_cleaning <- function(coords,
    # " to ”
    coords <- gsub(x=coords, pattern="\"", replacement="”")
    # ʺ to ”
-   coords <- gsub(x=coords, pattern="\ʺ", replacement="”")	# does not work yet for encoding reasons. R seems to automatically this character to " in commands but not in the char vector making it hard to reach. Done in Excel for now
+   coords <- gsub(x=coords, pattern="\ʺ", replacement="”")
    # ' to ’
    coords <- gsub(x=coords, pattern="\'", replacement="’")
    # ʹ to ’
-   coords <- gsub(x=coords, pattern="\ʹ", replacement="’")	# does not work yet for encoding reasons. R seems to automatically this character to ' in commands but not in the char vector making it hard to reach. Done in Excel for now
+   coords <- gsub(x=coords, pattern="\ʹ", replacement="’")
    # ’’ to ”
    coords <- gsub(x=coords, pattern="’’", replacement="”")
    # ʹʹ to ”
@@ -78,35 +89,57 @@ coordinate_cleaning <- function(coords,
 
    # If separator is space but there are many spaces in the string
    # is the northing at the beginning or in the middle?
-   northing_easting_position <- ifelse(substr(coords, 1, 1) %in% c('N','S','E','W'), "beginning",
-                                       ifelse(substr(coords, nchar(coords),nchar(coords)) %in% c('N','S','E','W'), "end", "none"))
+   northing_easting_position <- ifelse(substr(coords, 1, 1) %in% c('N','S','E','W'),
+                                       "beginning",
+                                       ifelse(substr(coords, nchar(coords),nchar(coords)) %in% c('N','S','E','W'),
+                                              "end",
+                                              "none"
+                                              )
+                                       )
    ###### Can be done with biogeo::getletter()?
 
    # look for the position of the central NE and split before or after depending on northing_easting_position
    northing_easting_rank <- sapply(c('N','S','E','W'), function(pattern) regexec(text=coords, pattern=pattern))
    northing_easting_rank[northing_easting_rank==-1] <- NA
    northing_easting_rank <- apply(northing_easting_rank, 2, as.numeric)
-   splitting_rank <- apply(northing_easting_rank, 1 , function(x) min(x[x>1]))
+   splitting_rank <- apply(northing_easting_rank, 1 , function(x) min(x[x>1], na.rm=T))
    splitting_rank <- ifelse(
       northing_easting_position=="beginning",
       splitting_rank,
       ifelse(northing_easting_position=="end", splitting_rank+1, NA)
    )
    # Insertion of a comma
-   stringi::stri_sub(coords[!is.na(comma_number) & comma_number==0], splitting_rank[!is.na(comma_number) & comma_number==0], (splitting_rank-1)[!is.na(comma_number) & comma_number==0]) <- ", "
+   which_insert_comma <- which(!is.na(comma_number) & comma_number==0 & !is.na(splitting_rank))
+   stringi::stri_sub(str = coords[which_insert_comma],
+                     from = splitting_rank[which_insert_comma],
+                     to = (splitting_rank-1)[which_insert_comma]) <- ", "
 
 
-   # Updating the separator count
+   # Potential separator count
    comma_number <- stringi::stri_count(str=coords, fixed=",")
    space_number <- stringi::stri_count(str=coords, fixed=" ")
+   semicolon_number <- stringi::stri_count(str=coords, fixed=";")
+   dot_number <- stringi::stri_count(str=coords, fixed=".")
 
 
 
    # simple comma split & simple space split & ", " split
    coord_split <- ifelse(comma_number==1 , strsplit(x=coords, split=c(",")),
-                         ifelse(comma_number>0 & space_number>0, strsplit(x=coords, split=c(", ")),
-                                ifelse(comma_number==0 & space_number==1, strsplit(x=coords, split=c(" ")), rep(NA,2))))
-   coord_split <- t(sapply(coord_split, matrix, nrow=1, ncol=2))	# convert to data.table formats
+                         ifelse(comma_number>0 & space_number>0,
+                                strsplit(x=coords, split=c(", ")),
+                                ifelse(comma_number==0 & space_number==1 & semicolon_number == 0,
+                                       strsplit(x=coords, split=c(" ")),
+                                       ifelse(semicolon_number == 1,
+                                              strsplit(x=coords, split=c(";")),
+                                              ifelse(dot_number == 1,
+                                                     strsplit(x=coords, split=c("\\.")),
+                                                     rep(NA,2)
+                                              )
+                                       )
+                                )
+                         )
+   )
+   coord_split <- t(sapply(coord_split, matrix, nrow=1, ncol=2))
    colnames(coord_split) <- c("lat","long")
 
 
@@ -146,6 +179,7 @@ coordinate_cleaning <- function(coords,
    )
 
    # deleting minus symbols when there is a letter
+   # Does it work when there is letter + sign? W-53.325897 ?
    coord_split[, "long"] <- ifelse(grepl(x=coord_split[, "long"], pattern="-") & (grepl(x=coord_split[, "long"], pattern="E") | grepl(x=coord_split[, "long"], pattern="W")),
                                    gsub(coord_split[, "long"], pattern="-", replacement=""),
                                    coord_split[, "long"]
@@ -161,9 +195,22 @@ coordinate_cleaning <- function(coords,
    northing_easting_info_value <- t(apply(coord_split, 1, gsub, pattern="([0-9])*(\\.)*(-)*(’)*(”)*(°)*(\ )*", replacement=""))
    if(any(!na.omit(northing_easting_info_value[nchar(c(northing_easting_info_value)) > 0]) %in% c("N","S","E","W"))) warning(paste0("Unexpected characters in rows ", paste(which(!northing_easting_info_value[nchar(c(northing_easting_info_value)) > 0] %in% c("N","S","E","W")), collapse=" ")))
 
-   direction_order <- ifelse(is.na(northing_easting_info_value[,1]), NA,	# is the latitude written first as expected?
-                             ifelse(nchar(northing_easting_info_value[,1]) == 0 & assume_good_order, "good",
-                                    ifelse(northing_easting_info_value[,1] %in% c("N","S"), "good", "inversed")))
+   if(assume_good_order) {
+      direction_order <- ifelse(is.na(northing_easting_info_value[,1]),
+                                NA,
+                                ifelse(nchar(northing_easting_info_value[,1]) == 0,
+                                       "good",
+                                       ifelse(northing_easting_info_value[,1] %in% c("N","S"),
+                                              "good",
+                                              "inversed")))
+   } else {
+      direction_order <- ifelse(is.na(northing_easting_info_value[,1]) | nchar(northing_easting_info_value[,1]) == 0,
+                                NA,
+                                ifelse(northing_easting_info_value[,1] %in% c("N","S"),
+                                       "good",
+                                       "inversed"))
+   }
+
 
    # inverting coordinates where needed (second value mistakefully considered as longitude switched to the first position)
    # Code should be improved to get rid of the for loop
@@ -174,6 +221,11 @@ coordinate_cleaning <- function(coords,
       }
    }
 
+   # Adding a letter for all values without easting or northing info
+   if(assume_good_order) {
+      coord_split[northing_easting_info_test == 0, 'lat'] <- paste0('N', coord_split[northing_easting_info_test == 0, 'lat'])
+      coord_split[northing_easting_info_test == 0, 'long'] <- paste0('E', coord_split[northing_easting_info_test == 0, 'long'])
+   }
 
 
 
@@ -184,32 +236,20 @@ coordinate_cleaning <- function(coords,
    dat_split <- data.frame(ID=id, apply(coord_split, 2, as.character), stringsAsFactors=F)
    coord_sparsed <- biogeo::dmsparse(dat=dat_split, x="long", y="lat", id="ID")
 
-   coord_sparsed$xnotes[coord_sparsed$xsec > 60] <- "impossible coord value"
-   coord_sparsed$ynotes[coord_sparsed$ysec > 60] <- "impossible coord value"
-   coord_sparsed$ynotes[abs(coord_sparsed$y) > 90] <- "impossible coord value"
+   problematic_long_values <- which(coord_sparsed$xmin > 60 | coord_sparsed$xsec > 60 | abs(coord_sparsed$x) > 180)
+   coord_sparsed[problematic_long_values, c('x','xnotes','exclude')] <- rep(c(NA, "impossible coord value", 1), length(problematic_long_values))
+
+   problematic_lat_values <- which(coord_sparsed$ymin > 60 | coord_sparsed$ysec > 60 | abs(coord_sparsed$y) > 90)
+   coord_sparsed[problematic_lat_values, c('y','ynotes','exclude')] <- rep(c(NA, "impossible coord value", 1), length(problematic_lat_values))
 
 
    coord_corrected <- coord_sparsed[, c("ID", "x", "y")]
 
-   return(coord_corrected)
+
+   switch (result_format,
+      'simple' = return(coord_corrected),
+      'complete' = return(coord_sparsed)
+   )
+
 }
 
-
-
-if(FALSE)	{	# using biogeo functions from the beginning
-	getformat(na.omit(coords))
-	uniqueformats(na.omit(coords))	# 80+ different formats
-}
-
-
-
-
-# Additional features
-#	reading the data
-# 		reading from xl limits the possibilities of read.text such as escape characters.
-#
-#	checking conversions (cf biogeo package tools)
-#		against continent
-#		against country
-#		prompting the user/saving a table with error messages giving clues about the problem
-#
