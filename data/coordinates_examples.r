@@ -11,3 +11,4 @@ coords <- c('52.473892, 13.40444',
 
 id <- rep("Site 1", length(coords))
 
+load('./data/coordinates_test_dataset_1')

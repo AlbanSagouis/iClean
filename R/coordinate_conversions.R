@@ -8,11 +8,14 @@
 #' indicateing Northing and Easting.
 #' @param id a character of factor vector grouping coordinates belonging to the same
 #' study or article ie. coordinates sharing the same style,
-#' @param assume_good_order If there is no information (a letter indicating Northing and Easting), is latitude assumed to come before longitude.
-#' longitude? Default to \code{FALSE}.
-#' @param result_format If \code{complete}, the default the table given by \code{\link[biogeo]{dmsparse}} .
-#' @return data.frame. If \code{result_format == 'simple'}: three columns, ID, x and y
-#' with coordinates in decimal degrees North and East. If \code{result_format == 'complete'}, coordinates are given but also comments on errors found in initial values.
+#' @param assume_good_order If there is no information (a letter indicating Northing and
+#' Easting), latitude is assumed to come before longitude. Default to \code{TRUE}.
+#' @param result_format If \code{complete}, the default, the function returns the table given by
+#' \code{\link[biogeo]{dmsparse}} with coordinates decomposed in degrees, minutes, seconds, decimal degrees and comments.
+#' If \code{simple}, only latitude and longitude are returned.
+#' @return data.frame. If \code{result_format == 'simple'}: two columns, x and y
+#' with coordinates in decimal degrees East and North. If \code{result_format == 'complete'}, coordinates are given
+#' with comments on errors found in initial values.
 #' @details The function uses regular expressions and parsing to split latitude
 #' and longitude values using different cues and prepares the coordinate strings
 #' to go through \code{\link[biogeo]{dmsparse}}. If coordinates are in a consistent
@@ -46,7 +49,7 @@
 
 coordinate_cleaning <- function(coords,
                                 id,
-                                assume_good_order = FALSE,
+                                assume_good_order = TRUE,
                                 result_format = 'complete') {
 
 
@@ -102,7 +105,7 @@ coordinate_cleaning <- function(coords,
    northing_easting_rank <- sapply(c('N','S','E','W'), function(pattern) regexec(text=coords, pattern=pattern))
    northing_easting_rank[northing_easting_rank==-1] <- NA
    northing_easting_rank <- apply(northing_easting_rank, 2, as.numeric)
-   splitting_rank <- apply(northing_easting_rank, 1 , function(x) min(x[x>1], na.rm=T))
+   splitting_rank <- apply(northing_easting_rank, 1 , function(x) suppressWarnings(min(x[x>1], na.rm=T)))
    splitting_rank <- ifelse(
       northing_easting_position=="beginning",
       splitting_rank,
@@ -215,7 +218,7 @@ coordinate_cleaning <- function(coords,
    # inverting coordinates where needed (second value mistakefully considered as longitude switched to the first position)
    # Code should be improved to get rid of the for loop
    for(i in 1:length(direction_order)) {
-      if(!is.na(direction_order[i]) & direction_order[i]=="inversed") {
+      if(!is.na(direction_order[i]) && direction_order[i]=="inversed") {
          coord_split[i, ] <- rev(coord_split[i, ])
          northing_easting_info_value[i, ] <- rev(northing_easting_info_value[i, ])
       }
@@ -237,13 +240,13 @@ coordinate_cleaning <- function(coords,
    coord_sparsed <- biogeo::dmsparse(dat=dat_split, x="long", y="lat", id="ID")
 
    problematic_long_values <- which(coord_sparsed$xmin > 60 | coord_sparsed$xsec > 60 | abs(coord_sparsed$x) > 180)
-   coord_sparsed[problematic_long_values, c('x','xnotes','exclude')] <- rep(c(NA, "impossible coord value", 1), length(problematic_long_values))
+   coord_sparsed[problematic_long_values, c('xnotes','exclude')] <- rep(c("impossible coord value", 1), each=length(problematic_long_values))
 
    problematic_lat_values <- which(coord_sparsed$ymin > 60 | coord_sparsed$ysec > 60 | abs(coord_sparsed$y) > 90)
-   coord_sparsed[problematic_lat_values, c('y','ynotes','exclude')] <- rep(c(NA, "impossible coord value", 1), length(problematic_lat_values))
+   coord_sparsed[problematic_lat_values, c('ynotes','exclude')] <- rep(c("impossible coord value", 1), each=length(problematic_lat_values))
 
 
-   coord_corrected <- coord_sparsed[, c("ID", "x", "y")]
+   coord_corrected <- coord_sparsed[, c("x", "y")]
 
 
    switch (result_format,

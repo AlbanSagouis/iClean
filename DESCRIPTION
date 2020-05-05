@@ -1,6 +1,6 @@
 Package: iClean
 Type: Package
-Title: Cleaning and homogenising species names, coordinates and site names. (Title Case)
+Title: Cleaning and homogenising species names, coordinates and site names.
 Version: 0.0.1.0
 Date: 2020-05-04
 Author: Alban Sagouis
@@ -8,6 +8,9 @@ Maintainer: Alban Sagouis <alban.sagouis@idiv.de>
 Description: Cleaning coordinates, species names and site names in messy and heterogeneous datasets
            The scripts are encoded in UTF-8 (important for special characters).
 License: What license is it under?
+URL: https://github.com/AlbanSagouis/iClean
+BugReports: https://github.com/AlbanSagouis/iClean/issues
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.0
+Imports: biogeo, stringi
