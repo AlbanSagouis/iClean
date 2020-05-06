@@ -1,4 +1,4 @@
-context("Species functions")
+context("Species function")
 source('C:/Users/as80fywe/idiv/my r packages/iClean/data/species_names_examples.r', encoding = 'UTF-8')
 
 test_that("Result characteristics are correct", {

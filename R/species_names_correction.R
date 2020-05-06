@@ -36,7 +36,7 @@ species_names_correction <- function(species_vector = NA,
    									replace_question_marks = FALSE,
    									erase_descriptor = TRUE
 									)	{
-   if((genus_name_extension | numberHomogenisation) & all(is.na(grouping_vector))) stop("grouping_vector is missing")
+   if((genus_name_extension || numberHomogenisation) && all(is.na(grouping_vector))) stop("grouping_vector is missing")
    if(class(grouping_vector) != "factor") grouping_vector <- factor(grouping_vector, levels = unique(grouping_vector))
 
    # Accentuated characters such as Áêãçoàúü are converted to their basic equivalent Aeacoauu

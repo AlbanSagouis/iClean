@@ -1,4 +1,4 @@
-context("Species functions")
+context("Coordinate function")
 source('C:/Users/as80fywe/idiv/my r packages/iClean/data/coordinates_examples.r', encoding = 'UTF-8')
 
 test_that("Result characteristics are correct", {
@@ -12,7 +12,8 @@ test_that("Result characteristics are correct", {
 # })
 
 tst <- coordinate_cleaning(dat$coord, dat$study_ID, assume_good_order = F)
-
+coordinate_cleaning(coords, id, result_format = 'simple')
+latlong_to_lat_long(coords)
 #
 # tdat <- rbind(dat,dat,dat,dat,dat,dat,dat,dat)
 # profvis::profvis({

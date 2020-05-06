@@ -7,7 +7,7 @@
 coordinate_cleaning(
   coords,
   id,
-  assume_good_order = FALSE,
+  assume_good_order = TRUE,
   result_format = "complete"
 )
 }
@@ -19,14 +19,17 @@ indicateing Northing and Easting.}
 \item{id}{a character of factor vector grouping coordinates belonging to the same
 study or article ie. coordinates sharing the same style,}
 
-\item{assume_good_order}{If there is no information (a letter indicating Northing and Easting), is latitude assumed to come before longitude.
-longitude? Default to \code{FALSE}.}
+\item{assume_good_order}{If there is no information (a letter indicating Northing and
+Easting), latitude is assumed to come before longitude. Default to \code{TRUE}.}
 
-\item{result_format}{If \code{complete}, the default the table given by \code{\link[biogeo]{dmsparse}} .}
+\item{result_format}{If \code{complete}, the default, the function returns the table given by
+\code{\link[biogeo]{dmsparse}} with coordinates decomposed in degrees, minutes, seconds, decimal degrees and comments.
+If \code{simple}, only latitude and longitude are returned.}
 }
 \value{
-data.frame. If \code{result_format == 'simple'}: three columns, ID, x and y
-with coordinates in decimal degrees North and East. If \code{result_format == 'complete'}, coordinates are given but also comments on errors found in initial values.
+data.frame. If \code{result_format == 'simple'}: two columns, x and y
+with coordinates in decimal degrees East and North. If \code{result_format == 'complete'}, coordinates are given
+with comments on errors found in initial values.
 }
 \description{
 The function converts coordinates in various formats in a single column to 2 columns,
@@ -38,6 +41,7 @@ The function uses regular expressions and parsing to split latitude
 and longitude values using different cues and prepares the coordinate strings
 to go through \code{\link[biogeo]{dmsparse}}. If coordinates are in a consistent
 format, \code{\link[biogeo]{dmsparse}} or \code{\link[biogeo]{dmsparsefmt}} can be used.
+If Latitude and Longitude are in different columns but format is messy, \code{\link[parzer]{parse_lon_lat}} does the job too.
 }
 \examples{
 load("data/coordinates_test_dataset_1")
@@ -50,6 +54,7 @@ data.frame(dat, coordinate_cleaning(coords, id))
 \seealso{
 \code{\link[biogeo]{dmsabs}}, \code{\link[biogeo]{dmsparse}},
 \code{\link[biogeo]{quickclean}}, \code{\link[biogeo]{errorcheck}}, \code{CoordinateCleaner}.
+\code{\link[parzer]{parse_lon_lat}}
 }
 \author{
 Alban Sagouis

@@ -20,9 +20,11 @@
 #' and longitude values using different cues and prepares the coordinate strings
 #' to go through \code{\link[biogeo]{dmsparse}}. If coordinates are in a consistent
 #' format, \code{\link[biogeo]{dmsparse}} or \code{\link[biogeo]{dmsparsefmt}} can be used.
+#' If Latitude and Longitude are in different columns but format is messy, \code{\link[parzer]{parse_lon_lat}} does the job too.
 #' @author Alban Sagouis
 #' @seealso  \code{\link[biogeo]{dmsabs}}, \code{\link[biogeo]{dmsparse}},
 #' \code{\link[biogeo]{quickclean}}, \code{\link[biogeo]{errorcheck}}, \code{CoordinateCleaner}.
+#' \code{\link[parzer]{parse_lon_lat}}
 #'
 #' @examples load("data/coordinates_test_dataset_1")
 #' coords <- dat$coord
@@ -43,6 +45,23 @@
 #		against country
 #		prompting the user/saving a table with error messages giving clues about the problem
 #
+# Replace '0, 0' values with NAs
+# Change the structure of the functions into a proper parser
+
+# DMS = "\\s*(\\d{1,3})\\s*(?:°|d|º| |g|o)"  // The degrees
+# + "\\s*([0-6]?\\d)\\s*(?:'|m| |´|’|′)" // The minutes
+# + "\\s*(?:"                            // Non-capturing group
+# + "([0-6]?\\d(?:[,.]\\d+)?)"           // Seconds and optional decimal
+# + "\\s*(?:\"|''|s|´´|″)?"
+# + ")?\\s*";
+
+# DM = "\\s*(\\d{1,3})\\s*(?:°|d|º| |g|o)" // The degrees
+# + "\\s*(?:"                           // Non-capturing group
+# + "([0-6]?\\d(?:[,.]\\d+)?)"          // Minutes and optional decimal
+# + "\\s*(?:'|m| |´|’|′)?"
+# + ")?\\s*";
+
+# D = "\\s*(\\d{1,3}(?:[,.]\\d+)?)\\s*(?:°|d|º| |g|o|)\\s*"; // The degrees and optional decimal
 
 ###############
 
@@ -216,8 +235,7 @@ coordinate_cleaning <- function(coords,
 
 
    # inverting coordinates where needed (second value mistakefully considered as longitude switched to the first position)
-   # Code should be improved to get rid of the for loop
-   for(i in 1:length(direction_order)) {
+   for(i in seq_along(direction_order)) {
       if(!is.na(direction_order[i]) && direction_order[i]=="inversed") {
          coord_split[i, ] <- rev(coord_split[i, ])
          northing_easting_info_value[i, ] <- rev(northing_easting_info_value[i, ])
